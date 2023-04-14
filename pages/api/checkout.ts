@@ -1,6 +1,8 @@
+import { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
 
-export default async function handler(req, res) {
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { total, sessionId, buyOrder, returnUrl } = req.body;
 
   const response = await axios.post(
