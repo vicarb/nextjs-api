@@ -1,8 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
+import cors from 'micro-cors';
 
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const { total, sessionId, buyOrder, returnUrl } = req.body;
 
   const response = await axios.post(
@@ -25,3 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   res.status(200).json({ url: response.data.url, token: response.data.token });
 }
+
+export default cors({
+    origin: '*'
+  })(handler);
