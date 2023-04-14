@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import Cors from 'cors';
 import axios from 'axios';
 
+
 // Initializing the cors middleware
 const corsMiddleware = Cors({
   methods: ['POST', 'GET', 'HEAD'],
