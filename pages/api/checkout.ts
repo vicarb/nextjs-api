@@ -28,5 +28,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 }
 
 export default cors({
-    origin: '*'
-  })(handler);
+    origin: 'http://localhost:3000', // Replace with your client's domain
+    allowMethods: ['GET', 'POST'] // Replace with the allowed HTTP methods
+  })(async (req, res) => {
+    await cors()(req, res); // Apply the CORS middleware
+  
+    // Set the Access-Control-Allow-Origin header
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+  
+    // Call your API code
+    handler(req, res);
+  });
+  
