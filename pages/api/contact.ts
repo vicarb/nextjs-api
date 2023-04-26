@@ -53,6 +53,9 @@ const handler = async (
       
       await collection.insertOne({ name, email, message });
       res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
       res.status(200).json({ message: 'Message sent successfully!' });
     } else if (req.method === 'GET') {
         try {
@@ -60,6 +63,10 @@ const handler = async (
           const collection = db.collection('contact');
           const data = await collection.find({}).toArray();
           res.setHeader('Access-Control-Allow-Origin', '*');
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+          res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
           res.status(200).json({ data });
         } catch (err) {
           console.log(err);
