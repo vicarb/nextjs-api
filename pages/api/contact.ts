@@ -1,7 +1,24 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { MongoClient, MongoClientOptions } from 'mongodb';
-import { log } from 'console';
+import Cors from 'cors';
+
+
+const corsMiddleware = Cors({
+    methods: ['POST', 'GET', 'HEAD'],
+  });
+  
+  // Helper method to wait for a middleware to execute before continuing
+  function runMiddleware(req: NextApiRequest, res: NextApiResponse, fn: Function) {
+    return new Promise((resolve, reject) => {
+      fn(req, res, (result: any) => {
+        if (result instanceof Error) {
+          return reject(result);
+        }
+        return resolve(result);
+      });
+    });
+  }
 
 const options: any = {
   useNewUrlParser: true,
@@ -19,10 +36,10 @@ async function connectToDatabase() {
     return client.db();
   }
 
-export default async function handler(
+const handler = async (
   req: NextApiRequest,
   res: NextApiResponse
-)  {
+) => {
     if (req.method === 'POST') {
       // Handle POST request
       const data = JSON.parse(req.body);
@@ -50,3 +67,11 @@ export default async function handler(
         }
       }
   }
+
+  export default async function(req: NextApiRequest, res: NextApiResponse) {
+  // Run the middleware
+  await runMiddleware(req, res, corsMiddleware);
+
+  // Rest of the API logic
+  handler(req, res);
+};
