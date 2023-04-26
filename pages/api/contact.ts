@@ -47,9 +47,10 @@ const handler = async (
       const collection = db.collection('contact');
         
       await collection.insertOne({ name, email, message });
-      if (req.headers.origin) {
-        res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
-      }
+      
+      // Set the Access-Control-Allow-Origin header
+      res.setHeader('Access-Control-Allow-Origin', 'https://vicarb.github.io');
+
       res.status(200).json({ message: 'Message sent successfully!' });
     } else if (req.method === 'GET') {
       try {
@@ -57,23 +58,25 @@ const handler = async (
         const collection = db.collection('contact');
         const data = await collection.find({}).toArray();
         
-        if (req.headers.origin) {
-          res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
-        }
+        // Set the Access-Control-Allow-Origin header
+        res.setHeader('Access-Control-Allow-Origin', 'https://vicarb.github.io');
+
         res.status(200).json({ data });
       } catch (err) {
         console.log(err);
-        if (req.headers.origin) {
-          res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
-        }
+
+        // Set the Access-Control-Allow-Origin header
+        res.setHeader('Access-Control-Allow-Origin', 'https://vicarb.github.io');
+
         res.status(500).json({ error: 'Error fetching contact data.' });
       }
     }
   };
+
 export default async function(req: NextApiRequest, res: NextApiResponse) {
   // Run the middleware
   await runMiddleware(req, res, corsMiddleware);
 
   // Rest of the API logic
-  handler(req, res);
+  await handler(req, res);
 };
