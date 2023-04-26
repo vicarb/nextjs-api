@@ -1,4 +1,3 @@
-
 import { NextApiRequest, NextApiResponse } from 'next';
 import { MongoClient, MongoClientOptions } from 'mongodb';
 import Cors from 'cors';
@@ -53,13 +52,14 @@ const handler = async (
       console.log("collection", collection);
       
       await collection.insertOne({ name, email, message });
+      res.setHeader('Access-Control-Allow-Origin', '*');
       res.status(200).json({ message: 'Message sent successfully!' });
     } else if (req.method === 'GET') {
         try {
           const db = await connectToDatabase();
           const collection = db.collection('contact');
           const data = await collection.find({}).toArray();
-      
+          res.setHeader('Access-Control-Allow-Origin', '*');
           res.status(200).json({ data });
         } catch (err) {
           console.log(err);
