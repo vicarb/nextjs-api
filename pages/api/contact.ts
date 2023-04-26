@@ -3,7 +3,7 @@ import { MongoClient, MongoClientOptions } from 'mongodb';
 import Cors from 'cors';
 
 const corsMiddleware = Cors({
-  origin: 'http://127.0.0.1:3000',
+  origin: 'https://vicarb.github.io',
   methods: ['POST', 'GET', 'HEAD'],
 });
 
