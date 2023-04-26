@@ -1,8 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { MongoClient, MongoClientOptions } from 'mongodb';
-import Cors from 'cors';
+import cors from 'cors';
 
-const corsMiddleware = Cors({
+const corsMiddleware = cors({
   origin: 'https://vicarb.github.io',
   methods: ['POST', 'GET', 'HEAD'],
 });
@@ -67,5 +67,5 @@ export default async function(req: NextApiRequest, res: NextApiResponse) {
   await runMiddleware(req, res, corsMiddleware);
 
   // Rest of the API logic
-  handler(req, res);
+  await handler(req, res);
 };
