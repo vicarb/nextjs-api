@@ -1,23 +1,16 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { MongoClient, MongoClientOptions } from 'mongodb';
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { MongoClient } from 'mongodb'
 import Cors from 'cors';
 
-const corsMiddleware = Cors({
-  origin: 'https://vicarb.github.io',
-  methods: ['POST', 'GET', 'HEAD'],
-});
+const uri = process.env.MONGODB_URI
+console.log(uri);
 
-// Helper method to wait for a middleware to execute before continuing
-function runMiddleware(req: NextApiRequest, res: NextApiResponse, fn: Function) {
-  return new Promise((resolve, reject) => {
-    fn(req, res, (result: any) => {
-      if (result instanceof Error) {
-        return reject(result);
-      }
-      return resolve(result);
-    });
-  });
-}
+const mongoOptions: any = {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+};
+
+
 
 const options: any = {
   useNewUrlParser: true,
@@ -25,58 +18,75 @@ const options: any = {
 };
 
 async function connectToDatabase() {
-  const uri = process.env.MONGODB_URI as string;
+  const uri = "mongodb+srv://myself:lolaso@cluster0.4eiodjx.mongodb.net/contact"
   const client = await MongoClient.connect(uri, options);
 
   return client.db();
 }
 
-const handler = async (
-    req: NextApiRequest,
-    res: NextApiResponse
-  ) => {
-    if (req.method === 'POST') {
-      // Handle POST request
-      const data = JSON.parse(req.body);
-        
-      const { name, email, message } = data;
-      console.log('Name:', name);
-      console.log('Email:', email);
-      console.log('Message:', message);
-      const db = await connectToDatabase();
-      const collection = db.collection('contact');
-        
-      await collection.insertOne({ name, email, message });
-      
-      // Set the Access-Control-Allow-Origin header
-      res.setHeader('Access-Control-Allow-Origin', 'https://vicarb.github.io');
 
-      res.status(200).json({ message: 'Message sent successfully!' });
-    } else if (req.method === 'GET') {
-      try {
-        const db = await connectToDatabase();
-        const collection = db.collection('contact');
-        const data = await collection.find({}).toArray();
-        
-        // Set the Access-Control-Allow-Origin header
-        res.setHeader('Access-Control-Allow-Origin', 'https://vicarb.github.io');
+const cors = Cors({
+  methods: ['GET', 'POST', 'OPTIONS', 'PUT'],
+});
 
-        res.status(200).json({ data });
-      } catch (err) {
-        console.log(err);
-
-        // Set the Access-Control-Allow-Origin header
-        res.setHeader('Access-Control-Allow-Origin', 'https://vicarb.github.io');
-
-        res.status(500).json({ error: 'Error fetching contact data.' });
+// Helper method to wait for a middleware to execute before continuing
+// And to throw an error when an error happens in a middleware
+function runMiddleware(req: NextApiRequest, res: NextApiResponse, fn: Function) {
+  return new Promise((resolve, reject) => {
+    fn(req, res, (result: unknown) => {
+      if (result instanceof Error) {
+        return reject(result);
       }
-    }
-  };
 
-export default async function(req: NextApiRequest, res: NextApiResponse) {
-  // Run the middleware
-  await runMiddleware(req, res, corsMiddleware);
+      return resolve(result);
+    });
+  });
+}
 
-  // Rest of the API logic
-  await handler(req, res);
-};
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // Run the cors middleware
+  await runMiddleware(req, res, cors);
+
+  const { method } = req;
+
+  switch (method) {
+    case 'GET':
+      try {
+        // Connect to the MongoDB database
+        const db = await connectToDatabase();
+
+        // Get the contact collection from the database
+        const contacts = await db.collection('contact').find({}).toArray();
+
+        // Return the contacts as JSON data
+        res.status(200).json({ contacts });
+      } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: 'Error connecting to database' });
+      }
+      break;
+
+    case 'POST':
+      try {
+        // Connect to the MongoDB database
+        const db = await connectToDatabase();
+
+
+        // Insert the new contact into the database
+        const { name, email, message } = req.body;
+        const newContact = { name, email, message };
+        const result = await db.collection('contact').insertOne(newContact);
+
+        // Return the result as JSON data
+        res.status(200).json({ result });
+      } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: 'Error connecting to database' });
+      }
+      break;
+
+    default:
+      res.setHeader('Allow', ['GET', 'POST']);
+      res.status(405).end(`Method ${method} Not Allowed`);
+  }
+}
