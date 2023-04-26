@@ -1,8 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { MongoClient, MongoClientOptions } from 'mongodb';
-import cors from 'cors';
+import Cors from 'cors';
 
-const corsMiddleware = cors({
+const corsMiddleware = Cors({
   origin: 'https://vicarb.github.io',
   methods: ['POST', 'GET', 'HEAD'],
 });
@@ -32,40 +32,48 @@ async function connectToDatabase() {
 }
 
 const handler = async (
-  req: NextApiRequest,
-  res: NextApiResponse
-) => {
-  if (req.method === 'POST') {
-    // Handle POST request
-    const data = JSON.parse(req.body);
-      
-    const { name, email, message } = data;
-    console.log('Name:', name);
-    console.log('Email:', email);
-    console.log('Message:', message);
-    const db = await connectToDatabase();
-    const collection = db.collection('contact');
-      
-    await collection.insertOne({ name, email, message });
-    res.status(200).json({ message: 'Message sent successfully!' });
-  } else if (req.method === 'GET') {
-    try {
+    req: NextApiRequest,
+    res: NextApiResponse
+  ) => {
+    if (req.method === 'POST') {
+      // Handle POST request
+      const data = JSON.parse(req.body);
+        
+      const { name, email, message } = data;
+      console.log('Name:', name);
+      console.log('Email:', email);
+      console.log('Message:', message);
       const db = await connectToDatabase();
       const collection = db.collection('contact');
-      const data = await collection.find({}).toArray();
-      
-      res.status(200).json({ data });
-    } catch (err) {
-      console.log(err);
-      res.status(500).json({ error: 'Error fetching contact data.' });
+        
+      await collection.insertOne({ name, email, message });
+      if (req.headers.origin) {
+        res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+      }
+      res.status(200).json({ message: 'Message sent successfully!' });
+    } else if (req.method === 'GET') {
+      try {
+        const db = await connectToDatabase();
+        const collection = db.collection('contact');
+        const data = await collection.find({}).toArray();
+        
+        if (req.headers.origin) {
+          res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+        }
+        res.status(200).json({ data });
+      } catch (err) {
+        console.log(err);
+        if (req.headers.origin) {
+          res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+        }
+        res.status(500).json({ error: 'Error fetching contact data.' });
+      }
     }
-  }
-}
-
+  };
 export default async function(req: NextApiRequest, res: NextApiResponse) {
   // Run the middleware
   await runMiddleware(req, res, corsMiddleware);
 
   // Rest of the API logic
-  await handler(req, res);
+  handler(req, res);
 };
