@@ -51,9 +51,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     case 'POST':
       try {
         const db = await connectToDatabase();
-        const { name, image, price, description } = req.body;
-        const newProduct = { name, image, price, description };
+        const { name, image, price, description, quantity } = req.body;
+        const newProduct = { name, image, price, description, quantity: quantity || 0 };
         const result = await db.collection('products').insertOne(newProduct);
+
         res.status(200).json({ result });
       } catch (error) {
         console.log(error);
